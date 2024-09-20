@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
                             onClick = {},
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
-                            Text("Add Item")
+                            Text("Add Items")
                         }
                     }
                 }
