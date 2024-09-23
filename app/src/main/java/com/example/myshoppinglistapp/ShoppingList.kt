@@ -1,6 +1,7 @@
 package com.example.myshoppinglistapp
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,9 +10,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -40,6 +43,7 @@ data class ShoppingItem(
     var isEditing: Boolean = false
 )
 
+
 @Composable
 fun ShoppingListApp() {
     var sItems by remember { mutableStateOf(listOf<ShoppingItem>()) }
@@ -64,7 +68,24 @@ fun ShoppingListApp() {
                 .padding(16.dp)
         ) {
             items(sItems) {
-                ShoppingListItem(it, {}, {})
+                item ->
+                if(item.isEditing){
+                    ShoppingItemEditor(item= item, onEditComplete = {
+                        editedName, editedQuantity ->
+                        sItems = sItems.map{it.copy(isEditing = false)}
+                        val editeItem = sItems.find { it.id == item.id}
+                        editeItem?.let{
+                            it.name = editedName
+                            it.quantity = editedQuantity
+                        }
+                    } )
+                }else{
+                    ShoppingListItem(item = item, onEditClick = {
+                        sItems = sItems.map{it.copy(isEditing = it.id == item.id)}
+                    }, onDeleteClick = {
+                        sItems = sItems-item
+                    })
+                }
             }
         }
     }
@@ -79,7 +100,7 @@ fun ShoppingListApp() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Button(onClick = {
-                        if(itemName.isNotBlank()) {
+                        if (itemName.isNotBlank()) {
                             val newItem = ShoppingItem(
                                 id = sItems.size + 1,
                                 name = itemName,
@@ -93,7 +114,7 @@ fun ShoppingListApp() {
                     }) {
                         Text("Add")
                     }
-                    Button(onClick = {showDialog=false}) {
+                    Button(onClick = { showDialog = false }) {
                         Text("Cancel")
                     }
                 }
@@ -125,15 +146,64 @@ fun ShoppingListApp() {
 }
 
 @Composable
+fun ShoppingItemEditor(item: ShoppingItem, onEditComplete: (String, Int) -> Unit) {
+    var editedName by remember { mutableStateOf(item.name) }
+    var editedQuantity by remember { mutableStateOf(item.quantity.toString()) }
+    var isEditing by remember { mutableStateOf(item.isEditing) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color.White)
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        Column {
+            BasicTextField(
+                value = editedName,
+                onValueChange = {editedName = it},
+                singleLine = true,
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(8.dp)
+            )
+            BasicTextField(
+                value = editedQuantity,
+                onValueChange = {editedQuantity = it},
+                singleLine = true,
+                modifier = Modifier
+                    .wrapContentSize()
+                    .padding(8.dp)
+            )
+        }
+    }
+    Button(
+        onClick = {
+            isEditing = false
+            onEditComplete(editedName, editedQuantity.toIntOrNull() ?: 1)
+        }
+    ) {
+        Text("Save")
+    }
+}
+
+@Composable
 fun ShoppingListItem(
     item: ShoppingItem,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
 ) {
-    Row(modifier = Modifier.padding(8.dp).fillMaxWidth().border(
-        border = BorderStroke(2.dp, Color(0XFF018786)), shape = RoundedCornerShape(20)
-    )) {
+    Row(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .border(
+                border = BorderStroke(2.dp, Color(0XFF018786)), shape = RoundedCornerShape(20)
+            )
+    ) {
         Text(item.name, modifier = Modifier.padding(8.dp))
+        Text("Qty: ${item.quantity.toString()}", modifier = Modifier.padding(8.dp))
+
         Row(modifier = Modifier.padding(8.dp)) {
             IconButton(onClick = onEditClick) {
                 Icon(imageVector = Icons.Default.Edit, contentDescription = null)
