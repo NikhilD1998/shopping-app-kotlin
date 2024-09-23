@@ -199,7 +199,8 @@ fun ShoppingListItem(
             .fillMaxWidth()
             .border(
                 border = BorderStroke(2.dp, Color(0XFF018786)), shape = RoundedCornerShape(20)
-            )
+            ),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(item.name, modifier = Modifier.padding(8.dp))
         Text("Qty: ${item.quantity.toString()}", modifier = Modifier.padding(8.dp))
